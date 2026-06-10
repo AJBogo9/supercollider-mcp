@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "supercollider-mcp"
+version = "0.1.0"
+description = "MCP server connecting Claude to SuperCollider with real-time playback and NRT rendering"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp[cli]>=1.0",
+    "supriya>=26.2b0",
+]
+
+[project.scripts]
+supercollider-mcp = "sc_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["sc_mcp"]

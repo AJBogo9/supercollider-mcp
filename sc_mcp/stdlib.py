@@ -52,11 +52,21 @@ from supriya.ugens import (
 )
 
 
-def _adsr_env(builder, *, attack, sustain, release, gate="gate"):
-    """ASR envelope with sustain plateau."""
+def _adsr_env(builder, *, attack, sustain, release):
+    """Time-based ASR envelope: attack -> sustain plateau -> release, then free synth.
+
+    SC envelope flat-array format:
+      [initial_level, n_segments, release_node, loop_node,
+       level1, dur1, shape1, curve1, ...]
+    shape 1 = linear, -99 = no release/loop node.
+    """
     return EnvGen.kr(
-        envelope=[0, 3, 1.0, attack, 1.0, sustain, 0.0, release],
-        gate=builder[gate],
+        envelope=[
+            0.0, 3, -99, -99,
+            1.0, attack, 1, 0,
+            1.0, sustain, 1, 0,
+            0.0, release, 1, 0,
+        ],
         done_action=2,
     )
 
@@ -73,7 +83,6 @@ with SynthDefBuilder(
     sustain=8.0,
     release=4.0,
     cutoff=1200.0,
-    gate=1,
 ) as _b:
     env = _adsr_env(_b, attack=_b["attack"], sustain=_b["sustain"], release=_b["release"])
     # Two slightly detuned sines + a triangle for warmth
@@ -102,7 +111,6 @@ with SynthDefBuilder(
     sustain=8.0,
     release=2.0,
     cutoff=400.0,
-    gate=1,
 ) as _b:
     env = _adsr_env(_b, attack=_b["attack"], sustain=_b["sustain"], release=_b["release"])
     sig = (
@@ -154,7 +162,6 @@ with SynthDefBuilder(
     release=2.0,
     cutoff=800.0,
     rq=0.3,
-    gate=1,
 ) as _b:
     env = _adsr_env(_b, attack=_b["attack"], sustain=_b["sustain"], release=_b["release"])
     sig = WhiteNoise.ar()
@@ -176,7 +183,6 @@ with SynthDefBuilder(
     sustain=6.0,
     release=4.0,
     rate=1.0,
-    gate=1,
 ) as _b:
     env = _adsr_env(_b, attack=_b["attack"], sustain=_b["sustain"], release=_b["release"])
     # Formant-like choir: pink noise through several narrow resonant filters

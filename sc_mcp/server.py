@@ -95,9 +95,49 @@ def _get_server() -> Server:
         server.add_synthdefs(*ALL_SYNTHDEFS.values())
     time.sleep(0.1)
 
+    # Wire scsynth outputs to the PipeWire default audio sink
+    _connect_pw_outputs()
+
     _log_lines.append("[sc-mcp] scsynth online, stdlib SynthDefs loaded.")
     _server = server
     return server
+
+
+def _default_pw_sink() -> str:
+    """Return the name of the current PipeWire default audio sink."""
+    import json
+    import subprocess
+    try:
+        out = subprocess.check_output(["pw-metadata"], text=True, stderr=subprocess.DEVNULL)
+        for line in out.splitlines():
+            if "default.audio.sink" in line:
+                # value:'{"name":"bluez_output.xxx"}' -> extract name
+                start = line.index('{"name"')
+                end = line.index("'", start)
+                return json.loads(line[start:end])["name"]
+    except Exception:
+        pass
+    return ""
+
+
+def _connect_pw_outputs() -> None:
+    """Connect SuperCollider:out_1/out_2 to the PipeWire default audio sink."""
+    import subprocess
+    sink = _default_pw_sink()
+    if not sink:
+        _log_lines.append("[sc-mcp] WARNING: could not find default PipeWire sink, audio may be silent.")
+        return
+    time.sleep(0.3)  # let pw-jack register SuperCollider ports
+    for sc_out, sink_in in [
+        ("SuperCollider:out_1", f"{sink}:playback_FL"),
+        ("SuperCollider:out_2", f"{sink}:playback_FR"),
+    ]:
+        result = subprocess.run(["pw-link", sc_out, sink_in], capture_output=True)
+        if result.returncode == 0:
+            _log_lines.append(f"[sc-mcp] linked {sc_out} -> {sink_in}")
+        else:
+            err = result.stderr.decode().strip()
+            _log_lines.append(f"[sc-mcp] pw-link {sc_out} -> {sink_in}: {err or 'failed'}")
 
 
 def _exec_context(server: Server, score: Score | None = None) -> dict:

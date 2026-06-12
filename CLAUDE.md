@@ -112,6 +112,19 @@ buf_id = load_sample("/path/to/file.mp3")
 server.add_synth(sample_one_shot, buffer_id=buf_id, amp=0.5, pan=0.0, rate=1.0)
 ```
 
+### kick_drum
+Classic sine-based kick: exponential pitch drop from `punch` Hz to `tone` Hz over `decay` seconds.
+```python
+server.add_synth(kick_drum, amp=0.8, pan=0.0, attack=0.003, decay=0.4,
+                 punch=180.0, tone=50.0)
+```
+
+### hihat
+High-passed white noise with a short exponential decay. Set `open_hat=1` for an open hi-hat tail.
+```python
+server.add_synth(hihat, amp=0.4, pan=0.0, decay=0.08, cutoff=8000.0, open_hat=0.0)
+```
+
 ## NRT rendering
 
 NRT (non-realtime) renders audio at 50-150x realtime speed. A 5-minute piece

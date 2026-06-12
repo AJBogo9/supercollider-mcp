@@ -49,6 +49,7 @@ from supriya.ugens import (
     SinOsc,
     WhiteNoise,
     XFade2,
+    XLine,
 )
 
 
@@ -224,6 +225,59 @@ sample_one_shot = _b.build(name="sample_one_shot")
 
 
 # ---------------------------------------------------------------------------
+# kick_drum
+# ---------------------------------------------------------------------------
+
+with SynthDefBuilder(
+    amp=0.8,
+    pan=0.0,
+    attack=0.003,
+    decay=0.4,
+    punch=180.0,
+    tone=50.0,
+) as _b:
+    # Exponential pitch drop from punch freq down to tone freq
+    freq_env = XLine.ar(start=_b["punch"], stop=_b["tone"], duration=_b["decay"])
+    amp_env = EnvGen.ar(
+        envelope=[0.0, 2, -99, -99,
+                  1.0, _b["attack"], 1, 0,
+                  0.0, _b["decay"], -4, 0],
+        done_action=2,
+    )
+    sig = SinOsc.ar(frequency=freq_env) * amp_env * _b["amp"]
+    Out.ar(bus=0, source=Pan2.ar(source=sig, position=_b["pan"]))
+
+kick_drum = _b.build(name="kick_drum")
+
+
+# ---------------------------------------------------------------------------
+# hihat
+# ---------------------------------------------------------------------------
+
+with SynthDefBuilder(
+    amp=0.4,
+    pan=0.0,
+    decay=0.08,
+    cutoff=8000.0,
+    open_hat=0.0,
+) as _b:
+    # open_hat > 0.5 gives a longer tail (open hi-hat)
+    hat_decay = _b["decay"] + _b["open_hat"] * 0.35
+    amp_env = EnvGen.ar(
+        envelope=[0.0, 2, -99, -99,
+                  1.0, 0.001, 1, 0,
+                  0.0, hat_decay, -4, 0],
+        done_action=2,
+    )
+    sig = WhiteNoise.ar()
+    sig = HPF.ar(source=sig, frequency=_b["cutoff"])
+    sig = sig * amp_env * _b["amp"]
+    Out.ar(bus=0, source=Pan2.ar(source=sig, position=_b["pan"]))
+
+hihat = _b.build(name="hihat")
+
+
+# ---------------------------------------------------------------------------
 # Registry: all defs in one place for easy iteration
 # ---------------------------------------------------------------------------
 
@@ -234,4 +288,6 @@ ALL_SYNTHDEFS = {
     "noise_wind": noise_wind,
     "choir_wash": choir_wash,
     "sample_one_shot": sample_one_shot,
+    "kick_drum": kick_drum,
+    "hihat": hihat,
 }

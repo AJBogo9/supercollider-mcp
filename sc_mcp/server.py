@@ -410,12 +410,19 @@ def sc_render(
 
     t0 = time.time()
     try:
-        result_path, return_code = supriya.render(
-            score,
-            output_file_path=out,
-            render_directory_path=out.parent,
-            options=SC_OPTIONS,
-        )
+        # supriya.render() calls asyncio.run() internally, which fails when called
+        # from inside a running event loop (the MCP server). Run it in a thread
+        # instead -- threads have no running event loop, so asyncio.run() works.
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(
+                supriya.render,
+                score,
+                output_file_path=out,
+                render_directory_path=out.parent,
+                options=SC_OPTIONS,
+            )
+            result_path, return_code = future.result()
     except Exception:
         return f"Render error:\n{traceback.format_exc()}"
 

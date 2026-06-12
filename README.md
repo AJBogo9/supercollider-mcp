@@ -4,11 +4,12 @@ An MCP server that connects Claude Code to SuperCollider, enabling AI-driven mus
 
 ## Why SuperCollider?
 
-[Sonic Pi](https://sonic-pi.net/) is great for live coding, but it renders audio in realtime only -- a 5-minute piece takes 5 minutes to produce. SuperCollider's NRT mode renders audio from a score as fast as your CPU allows, typically 50-150x realtime. A 5-minute piece renders in 2-4 seconds.
+[SuperCollider](https://github.com/supercollider/supercollider) is a platform for audio synthesis and algorithmic composition. Its synthesis server (`scsynth`) runs independently of any frontend and accepts OSC messages, making it straightforward to drive programmatically.
 
-This server gives Claude both modes:
-- **Real-time**: compose interactively, hear results immediately
-- **NRT**: render a finished piece to WAV without waiting
+Two features make it well-suited for AI-assisted composition:
+
+- **Real-time synthesis**: send code, hear results immediately, iterate
+- **Non-realtime (NRT) rendering**: process an audio score from a file at 50-150x realtime speed -- a 5-minute piece renders in 2-4 seconds, no waiting
 
 ## Requirements
 

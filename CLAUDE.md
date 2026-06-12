@@ -10,11 +10,11 @@ MCP server connecting Claude to SuperCollider (scsynth) via the supriya Python l
 
 ## Starting the MCP server
 
-The server is started automatically by Claude Code via `.mcp.json` in the beats project.
+The server is started automatically by Claude Code via `.mcp.json` in the project.
 To run manually for testing:
 
 ```bash
-cd ~/Documents/personal/supercollider-mcp
+cd /path/to/supercollider-mcp
 .venv/bin/python -m sc_mcp.server
 ```
 
@@ -27,7 +27,7 @@ scsynth requires JACK for audio output. On Ubuntu 24.04 with PipeWire,
 raw JACK fails. The `pw-jack` wrapper connects scsynth to PipeWire's JACK layer.
 
 ```bash
-# /home/bogo/.local/bin/pw-scsynth
+# ~/.local/bin/pw-scsynth
 #!/bin/bash
 exec pw-jack scsynth "$@"
 ```
@@ -45,8 +45,8 @@ If scsynth fails to boot, check that pw-scsynth is executable and on PATH.
 | `sc_stop` | Free all synths, signal song loops to stop |
 | `sc_log` | Read scsynth output and exec error log |
 | `sc_render(code, duration, output_path)` | NRT render to WAV (50-150x realtime) |
-| `save_song` / `load_song` / `list_songs` | Song library (saves to beats/songs/) |
-| `save_pattern` / `load_pattern` / `list_patterns` | Pattern library (beats/patterns/) |
+| `save_song` / `load_song` / `list_songs` | Song library |
+| `save_pattern` / `load_pattern` / `list_patterns` | Pattern library |
 
 ## sc_play context
 

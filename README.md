@@ -48,9 +48,9 @@ Add to your project's `.mcp.json`:
 {
   "mcpServers": {
     "supercollider": {
-      "command": "/home/bogo/Documents/personal/supercollider-mcp/.venv/bin/python",
+      "command": "/path/to/supercollider-mcp/.venv/bin/python",
       "args": ["-m", "sc_mcp.server"],
-      "cwd": "/home/bogo/Documents/personal/supercollider-mcp"
+      "cwd": "/path/to/supercollider-mcp"
     }
   }
 }
@@ -129,8 +129,3 @@ for fn in [bass_loop, melody_loop]:
 # Stop with: sc_stop()
 ```
 
-## Demo: aurora borealis
-
-The `songs/aurora_borealis_sc/v1.py` file is a full port of the aurora borealis ambient track
-(originally composed in Sonic Pi) using SuperCollider. 12 concurrent generative loops, D Lydian
-harmony, Markov chain chord progressions, real owl and wolf samples.

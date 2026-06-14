@@ -44,7 +44,8 @@ If scsynth fails to boot, check that pw-scsynth is executable and on PATH.
 | `sc_play(code)` | Execute Python/supriya code against the live server |
 | `sc_stop` | Free all synths, signal song loops to stop |
 | `sc_log` | Read scsynth output and exec error log |
-| `sc_render(code, duration, output_path)` | NRT render to WAV (50-150x realtime) |
+| `sc_render(code, duration, output_path)` | NRT render to WAV (50-150x realtime); returns a one-line analysis summary |
+| `sc_analyze(path)` | Analyze a render: LUFS, true peak, dynamic range, spectral balance, stereo, key |
 | `save_song` / `load_song` / `list_songs` | Song library |
 | `save_pattern` / `load_pattern` / `list_patterns` | Pattern library |
 

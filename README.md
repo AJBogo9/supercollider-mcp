@@ -67,7 +67,8 @@ Add to your project's `.mcp.json`:
 | `sc_play(code)` | Run Python/supriya code on the live server |
 | `sc_stop` | Stop all sounds, signal song threads to exit |
 | `sc_log` | Read scsynth output and exec errors |
-| `sc_render(code, duration, output_path)` | NRT render to WAV |
+| `sc_render(code, duration, output_path)` | NRT render to WAV (returns a one-line analysis summary) |
+| `sc_analyze(path)` | Analyze a render: loudness, dynamics, spectrum, stereo, key |
 | `save_song` / `load_song` / `list_songs` | Song library |
 | `save_pattern` / `load_pattern` / `list_patterns` | Pattern snippets |
 
@@ -129,4 +130,24 @@ for fn in [bass_loop, melody_loop]:
 """)
 # Stop with: sc_stop()
 ```
+
+## Audio analysis
+
+The model can't hear the audio, so `sc_analyze` turns a render into measurable proxies it can reason about, closing the quality side of the loop (`render -> analyze -> adjust`). It reads the rendered file directly (no real-time playback or recording) and reports:
+
+- **Loudness**: integrated LUFS, loudness range, true peak (dBTP), clipping
+- **Dynamics**: dynamic range (peak - RMS)
+- **Spectral balance**: 6-band energy, spectral centroid, mud/harshness flags
+- **Stereo**: phase correlation, width, and a mono-bass check
+- **Key**: detected key/scale, to compare against what was intended
+
+```python
+sc_render("...", duration=180.0, output_path="/tmp/track.wav")
+# -> Rendered 180.0s ... Analysis: -11.9 LUFS, peak -3.0 dBTP, DR 11.3 dB, ...
+
+sc_analyze("/tmp/track.wav")
+# -> full report with per-band levels, stereo metrics, detected key, and notes
+```
+
+`sc_render` folds a one-line summary into its output automatically; call `sc_analyze` for the full report.
 

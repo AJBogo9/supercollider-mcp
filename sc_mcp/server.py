@@ -433,11 +433,70 @@ def sc_render(
 
     size_mb = result_path.stat().st_size / 1_048_576 if result_path else 0
     realtime_ratio = duration / elapsed if elapsed > 0 else 0
-    return (
+    out_msg = (
         f"Rendered {duration:.1f}s of audio in {elapsed:.2f}s "
         f"({realtime_ratio:.0f}x realtime).\n"
         f"Output: {result_path} ({size_mb:.1f} MB)"
     )
+
+    # Fold a one-line analysis summary into the result so the loop is
+    # render -> read stats in a single call. Call sc_analyze for the full report.
+    try:
+        from .analysis import analyze_audio, one_line_summary
+
+        summary = one_line_summary(analyze_audio(str(result_path)))
+        out_msg += f"\nAnalysis: {summary}"
+    except Exception:
+        pass  # analysis is best-effort; never fail a render over it
+
+    return out_msg
+
+
+# ---------------------------------------------------------------------------
+# Tools: audio analysis
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def sc_analyze(path: str, time_series: bool = False) -> str:
+    """Analyze a rendered audio file and report measurable mix/master metrics.
+
+    The model can't hear the audio, so this turns a render into numbers it can
+    reason about: loudness, dynamics, spectral balance, stereo image, and key.
+    Use it after sc_render to judge a mix and decide what to change next.
+
+    Reads WAV/AIFF directly (the 24-bit AIFF that sc_render writes is fine);
+    no real-time playback or recording is involved.
+
+    Reports:
+      - Loudness: integrated LUFS, loudness range, true peak (dBTP), clipping
+      - Dynamics: dynamic range (peak - RMS)
+      - Spectral balance: 6-band energy, centroid, mud/harshness flags
+      - Stereo: phase correlation, width, and a mono-bass check
+      - Key: detected key/scale (compare against what you intended)
+      - Interpreted notes flagging likely problems
+
+    Args:
+        path:        Path to the rendered file (e.g. the output_path from sc_render).
+        time_series: If True, also include the per-second short-term loudness curve.
+    """
+    try:
+        from .analysis import analyze_audio, format_report
+    except ImportError as e:
+        return f"Analysis dependencies missing ({e}). Install numpy, soundfile, pyloudnorm."
+    p = pathlib.Path(path)
+    if not p.exists():
+        return f"File not found: {path}"
+    try:
+        result = analyze_audio(str(p), time_series=time_series)
+    except Exception:
+        return f"Analysis error:\n{traceback.format_exc()}"
+    report = format_report(result)
+    if time_series:
+        report += "\n\nSHORT-TERM LUFS (per second):\n  " + ", ".join(
+            str(v) for v in result.get("short_term_lufs", [])
+        )
+    return report
 
 
 # ---------------------------------------------------------------------------
